@@ -1,0 +1,9 @@
+.title {
+  margin: 0 !important;
+  color: var(--black-main);
+  cursor: pointer;
+}
+
+.title:hover {
+  color: var(--blue-aqua);
+}
