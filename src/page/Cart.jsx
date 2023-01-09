@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import PageContainer from "../component/PageContainer";
 import {
   Row,
@@ -12,72 +12,86 @@ import {
 } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { PlusOutlined, MinusOutlined, CloseOutlined } from "@ant-design/icons";
-import { addToCart, decfromCart } from "../redux/cart";
+import { addToCart, decfromCart, setCart } from "../redux/cart";
 import { useNavigate } from "react-router-dom";
+import CartService from "../service/Cart";
 
 const { Title, Text } = Typography;
 
 const Cart = () => {
   const dispatch = useDispatch();
+  const cartService = new CartService();
   const navigate = useNavigate();
-  const produk = useSelector((state) => state.cart.value);
+  const cart = useSelector((state) => state.cart.value);
+
+  useEffect(() => {
+    fetchCart();
+  }, [cart]);
+
+  const fetchCart = async () => {
+    const response = await cartService.getCart();
+    dispatch(setCart(response));
+  };
   const columns = [
     {
       title: "",
       render: (_, record) => (
-        <Button danger shape="circle" icon={<CloseOutlined />} />
+        <Button
+          danger
+          shape="circle"
+          icon={<CloseOutlined />}
+          onClick={() => {
+            cartService.removeFromCart(record.id);
+          }}
+        />
       ),
     },
     {
       title: "Produk",
       render: (_, record) => (
         <Space>
-          <Image width={150} src={record.produk.image} />
-          <Text style={{ marginLeft: "20px" }}>{record.produk.name}</Text>
+          <Image width={150} src={record.image.url} />
+          <Text style={{ marginLeft: "20px" }}>{record.name}</Text>
         </Space>
       ),
     },
     {
       title: "@Harga",
       render: (_, record) => (
-        <Text>IDR {record.produk.price.toLocaleString("id")}</Text>
+        <Text>IDR {record.price.raw.toLocaleString("id")}</Text>
       ),
     },
     {
       title: "Qty",
-      dataIndex: "quantity",
-      key: "quantity",
-      render: (text, record) => (
+      render: (_, record) => (
         <Space>
           <Button
             type="primary"
             shape="circle"
             icon={<MinusOutlined />}
-            onClick={() => dispatch(decfromCart(record.produk), 1)}
+            onClick={() => {
+              cartService.updateCart(record.id, record.quantity - 1);
+            }}
           />
-          <Text>{text}</Text>
+          <Text>{record.quantity}</Text>
           <Button
             type="primary"
             shape="circle"
             icon={<PlusOutlined />}
-            onClick={() => dispatch(addToCart(record.produk), 1)}
+            onClick={() => {
+              cartService.addToCart(record.product_id);
+            }}
           />
         </Space>
       ),
     },
     {
-      title: "Jumalah",
+      title: "Jumlah",
       render: (_, record) => (
-        <Text>
-          IDR {(record.produk.price * record.quantity).toLocaleString("id")}
-        </Text>
+        <Text>IDR {record.line_total.raw.toLocaleString("id")}</Text>
       ),
     },
   ];
-  const getTotalPrice = () => {
-    return produk.reduce((a, b) => a + b.produk.price * b.quantity, 0);
-  };
-
   const handleBuy = () => {
     navigate("/payment");
   };
@@ -88,7 +102,7 @@ const Cart = () => {
         <Col span={18} style={{ marginTop: "50px" }}>
           <Row justify={"center"}>
             <Col span={24}>
-              <Table columns={columns} dataSource={produk} />
+              <Table columns={columns} dataSource={cart.line_items} />
             </Col>
             <Divider />
 
@@ -102,7 +116,8 @@ const Cart = () => {
                     <Col span={24}>
                       <Title level={3}>
                         Total &nbsp;&nbsp;IDR{" "}
-                        {getTotalPrice().toLocaleString("id")}
+                        {cart.subtotal &&
+                          cart.subtotal.raw.toLocaleString("id")}
                       </Title>
                     </Col>
                     <Col span={24}>

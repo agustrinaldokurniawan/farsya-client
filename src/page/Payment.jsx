@@ -1,11 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PageContainer from "../component/PageContainer";
 import { Row, Col, Typography, Image, Input, Button } from "antd";
+import Transaction from "../service/Transaction";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { setCart } from "../redux/cart";
+import CartService from "../service/Cart";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 const Payment = () => {
+  const transactionService = new Transaction();
+  const cart = useSelector((state) => state.cart.value);
+  const dispatch = useDispatch();
+  const cartService = new CartService();
+  const navigate = useNavigate();
   const [state, setState] = useState({
     firstName: "",
     lastName: "",
@@ -13,13 +23,25 @@ const Payment = () => {
     alamat: "",
     phoneNumber: "",
   });
+  useEffect(() => {
+    fetchCart();
+  }, [cart]);
+
+  const fetchCart = async () => {
+    const response = await cartService.getCart();
+    dispatch(setCart(response));
+  };
   const handleChange = (key, value) => {
     setState((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
-  const handleSubmit = () => {};
+  const handleSubmit = async () => {
+    const response = await transactionService.makeOrder({ ...state, cart });
+    navigate("/");
+    window.open(response.transaction.duitku_response.paymentUrl);
+  };
   return (
     <PageContainer title={"Payment"}>
       <Row justify={"center"}>
@@ -75,7 +97,12 @@ const Payment = () => {
                 />
               </Col>
               <Col span={24} style={{ textAlign: "center" }}>
-                <Button type="primary" size="large" style={{ width: "300px" }}>
+                <Button
+                  type="primary"
+                  size="large"
+                  style={{ width: "300px" }}
+                  onClick={handleSubmit}
+                >
                   Proses Pembayaran
                 </Button>
               </Col>

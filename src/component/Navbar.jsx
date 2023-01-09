@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { ShoppingCartOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const menu = [
   {
@@ -30,15 +30,8 @@ const menu = [
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const produk = useSelector((state) => state.cart.value);
-  const [quantity, setQuantity] = useState(0);
+  const cart = useSelector((state) => state.cart.value);
 
-  useEffect(() => {
-    const total = produk.reduce((a, b) => {
-      return a + b.quantity;
-    }, 0);
-    setQuantity(total);
-  }, []);
   return (
     <Row>
       <Col span={5}>
@@ -64,10 +57,10 @@ const Navbar = () => {
       </Col>
       <Col span={4}>
         <Space align="center" size={50}>
-          <Button type="text" onClick={() => navigate("account")}>
+          <Button type="text" onClick={() => navigate("#")}>
             Akun saya
           </Button>
-          <Badge count={quantity} showZero>
+          <Badge count={cart.total_items} showZero>
             <Button
               type="text"
               shape="circle"
