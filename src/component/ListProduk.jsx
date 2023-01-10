@@ -30,7 +30,7 @@ const ListProduk = ({ produk, keyword }) => {
             <Col span={6} style={{ marginTop: "20px" }} key={key}>
               <Card
                 hoverable
-                style={{ width: 240, padding: 0 }}
+                style={{ padding: 0 }}
                 cover={<img alt="example" src={item.image.url} />}
               >
                 <Title
